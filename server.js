@@ -50,10 +50,23 @@ app.get('/documents', authMiddleware, (req, res) => {
   res.status(200).json(documents);
 });
 
-// Додавання нового документа (також лише авторизовані користувачі)
+// Додавання нового документа (додаємо валідацію) (також лише авторизовані користувачі)
 app.post('/documents', authMiddleware, (req, res) => {
-  const newDocument = req.body;
-  newDocument.id = Date.now(); // створюємо унікальний id
+  const { title, content } = req.body;
+
+  // Перевіряємо, чи є обидва поля
+  if (!title || !content) {
+    return res.status(400).json({
+      message: 'Bad Request. Fields "title" and "content" are required.'
+    });
+  }
+
+  const newDocument = {
+    id: Date.now(),
+    title,
+    content
+  };
+
   documents.push(newDocument);
   res.status(201).json(newDocument);
 });
@@ -61,6 +74,19 @@ app.post('/documents', authMiddleware, (req, res) => {
 // Отримання списку співробітників (тільки для адміністратора)
 app.get('/employees', authMiddleware, adminOnlyMiddleware, (req, res) => {
   res.status(200).json(employees);
+});
+
+// DELETE
+app.delete('/documents/:id', authMiddleware, (req, res) => {
+  const documentId = parseInt(req.params.id);
+  const documentIndex = documents.findIndex(doc => doc.id === documentId);
+
+  if (documentIndex === -1) {
+    return res.status(404).json({ message: 'Document not found' });
+  }
+
+  documents.splice(documentIndex, 1);
+  res.status(204).send(); // 204 — успішно, але без тіла відповіді
 });
 
 // Запуск сервера
