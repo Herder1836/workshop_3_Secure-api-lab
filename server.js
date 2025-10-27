@@ -5,6 +5,20 @@ const PORT = 3000;
 
 app.use(express.json());
 
+// --- MIDDLEWARE: Логування ---
+const loggingMiddleware = (req, res, next) => {
+  const timestamp = new Date().toISOString(); // поточний час
+  const method = req.method;                   // метод запиту (GET, POST, DELETE...)
+  const url = req.url;                         // шлях запиту (/documents, /employees)
+
+  console.log(`[${timestamp}] ${method} ${url}`);
+
+  // передаємо далі до наступного middleware або маршруту
+  next();
+};
+
+app.use(loggingMiddleware);
+
 // --- MIDDLEWARE: Аутентифікація ---
 const authMiddleware = (req, res, next) => {
   const login = req.headers['x-login'];
